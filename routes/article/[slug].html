@@ -1,0 +1,35 @@
+<!-- @template article -->
+<!-- @data article /article/%slug%.json -->
+
+<style>
+  pre code {
+    color: black;
+  }
+  h1 {
+    margin: 0 0 16px 0;
+  }
+</style>
+
+<h1>Dynamic SSR</h1>
+<p>Templates and components can be loaded in routes using the @template tag.</p>
+<pre>
+  <code>
+    &lt;!-- @template article--&gt;
+  </code>
+</pre>
+
+<p>Data can be loaded in routes using the @data tag.</p>
+<pre>
+  <code>
+    &lt;!-- @data article /article/%slug.json --&gt;
+    &lt;simp-article&gt;
+      &lt;h2 slot="title"&gt;&#123;&#123; article.title &#125;&#125;&lt;/h2&gt;
+      &lt;p&gt;&#123;&#123; article.content &#125;&#125;&lt;/p&gt;
+    &lt;/simp-article&gt;
+  </code>
+</pre>
+
+<simp-article>
+  <h2 slot="title">{{ article.title }}</h2>
+  <p>{{ article.content }}</p>
+</simp-article>

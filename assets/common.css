@@ -1,0 +1,50 @@
+@import url("https://cdn.jsdelivr.net/gh/jgthms/minireset.css@master/minireset.min.css");
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 16px;
+}
+
+h1 {
+  font-size: 32px;
+}
+h2 {
+  font-size: 28px;
+}
+h3 {
+  font-size: 24px;
+}
+
+nav {
+  background: hsl(225, 80%, 50%);
+  height: 48px;
+  line-height: 48px;
+}
+
+nav ul {
+  display: flex;
+  text-align: center;
+}
+
+nav ul > li {
+  flex: 1 1 auto;
+}
+
+nav ul > li > h1 {
+  font-size: 24px;
+  color: white;
+}
+
+nav ul > li > a {
+  display: block;
+  color: white;
+  text-decoration: none;
+}
+
+nav ul > li > a:hover {
+  background: hsl(225, 80%, 40%);
+}
+
+main {
+  padding: 8px 16px;
+}

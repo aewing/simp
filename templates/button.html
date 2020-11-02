@@ -1,0 +1,30 @@
+<template id="simp-button-template">
+  <style>
+    button {
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: blue;
+      color: white;
+      appearance: none;
+      border: none;
+      font-weight: bolder;
+      cursor: pointer;
+    }
+
+    button.orange {
+      background: orange;
+      color: black;
+    }
+  </style>
+  <button>
+    <slot />
+  </button>
+</template>
+
+<script>
+  $component("simp-button", "simp-button-template", {
+    onMount: (el) => {
+      el.shadow("button").className = el.getAttribute("color");
+    },
+  });
+</script>
