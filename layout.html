@@ -1,11 +1,15 @@
-<!DOCTYPE html>
+<!DOCTYPE html />
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>%title%</title>
+    <title>simp</title>
     <link rel="stylesheet" href="/assets/common.css" />
     <script src="/assets/common.js" language="javascript"></script>
+    <script
+      type="module"
+      src="https://unpkg.com/svelte@3.29.4/internal/index.mjs"
+    ></script>
     %head%
   </head>
   <body>
@@ -14,15 +18,9 @@
         <li>
           <h1>simp</h1>
         </li>
-        <li>
-          <a href="/">Homepage</a>
-        </li>
-        <li>
-          <a href="/slug">Slug Route</a>
-        </li>
-        <li>
-          <a href="/article/hello-world">Hello, World</a>
-        </li>
+        <li><a href="/">Homepage</a></li>
+        <li><a href="/slug">Slug Route</a></li>
+        <li><a href="/article/hello-world">Hello, World</a></li>
       </ul>
     </nav>
     <main>%body%</main>

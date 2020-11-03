@@ -3,6 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const qs = require("querystring");
 const { parse } = require("url");
+require("svelte/register");
 
 const mime = {
   css: "text/css",
@@ -15,7 +16,6 @@ const mime = {
 };
 
 const routeDir = path.join(__dirname, "routes");
-const templateDir = path.join(__dirname, "templates");
 
 const server = http.createServer(async (req, res) => {
   const { pathname, query, hash } = parse(req.url);
@@ -38,7 +38,6 @@ const server = http.createServer(async (req, res) => {
       while (!route && parts.length) {
         const testPath = path.join(routeDir, parts.join("/"), "[slug].json.js");
         if (fs.existsSync(testPath)) {
-          console.log("Endpoint found", testPath);
           route = require(testPath);
         } else {
           parts.pop();
@@ -56,7 +55,7 @@ const server = http.createServer(async (req, res) => {
   const [_, basePath] = pathname.split("/");
   const ext = pathname.indexOf(".") !== -1 ? pathname.split(".").pop() : null;
 
-  if (["assets", "templates"].includes(basePath)) {
+  if (["assets"].includes(basePath)) {
     const filename = path.join(__dirname, pathname);
     if (fs.existsSync(filename)) {
       const response = fs.readFileSync(filename);
@@ -78,96 +77,59 @@ const server = http.createServer(async (req, res) => {
     return reply("Not Found", "text/html", 404);
   }
 
-  // Frontend route
-  const metadata = { data: {} };
-  let response = false;
-
+  let Route;
+  let filename;
+  const metadata = { data: {}, pathname, slug: null };
   const fullPath = path.join(
     routeDir,
-    `${pathname}${pathname.substr(-1, 1) === "/" ? "index" : ""}.html`
+    `${pathname}${pathname.substr(-1, 1) === "/" ? "index" : ""}.svelte`
   );
   if (fs.existsSync(fullPath)) {
-    metadata.path = fullPath;
-    response = fs.readFileSync(fullPath).toString().replace("%slug%", "index");
+    filename = fullPath;
+    metadata.slug = "index";
+    Route = require(fullPath);
   } else {
     const parts = pathname.split("/");
     const match = [];
-    while (!response && parts.length) {
-      const testPath = path.join(routeDir, parts.join("/"), "[slug].html");
+    while (!Route && parts.length) {
+      const testPath = path.join(routeDir, parts.join("/"), "[slug].svelte");
       if (fs.existsSync(testPath)) {
-        metadata.path = path.join(parts.join("/"), "[slug].html");
+        filename = testPath;
         metadata.match = match.reverse().join("/");
-        response = fs
-          .readFileSync(testPath)
-          .toString()
-          .replace(/%slug%/g, match.join("/"));
+        metadata.slug = match.join("/");
+        Route = require(testPath);
       } else {
         match.push(parts.pop());
       }
     }
   }
 
-  // Load templates
-  response = response.replace(/<!-- @template (.*) -->/g, (full, template) => {
-    const templatePath = path.join(templateDir, `${template}.html`);
-    if (fs.existsSync(templatePath)) {
-      return fs.readFileSync(templatePath).toString();
-    }
-    return "";
-  });
-
-  // Preload data
-  const dataPromises = [];
-  response.replace(
-    /<!-- @data ([a-zA-Z]+) (.*) -->/g,
-    (full, name, pathname) => {
-      dataPromises.push(
-        endpoint(pathname, {
-          method: "GET",
-          body: {},
-          headers: {},
-        }).then(({ body }) => [name, body])
-      );
-      return "";
-    }
-  );
-
-  await Promise.all(dataPromises).then((results) =>
-    results.map(([name, data]) => {
-      metadata.data[name] = data;
-    })
-  );
-
-  response = response.replace(/{{(.*)}}/g, (full, key) => {
-    return get(metadata.data, key.trim());
-  });
-
-  if (response) {
-    response = fs
-      .readFileSync(path.join(__dirname, "layout.html"))
-      .toString()
-      .replace("%body%", response)
-      .replace(
-        "%head%",
-        `<script>window.route = ${JSON.stringify(metadata)}</script>`
-      )
-      .replace("%title%", "");
-    return reply(response);
+  if (!Route) {
+    return reply("Not Found", "text/html", 404);
   }
 
-  return reply("Not Found", "text/html", 404);
-});
-server.listen(3000);
-console.log("Listening");
+  fetch = (pathname) => ({
+    json: () => endpoint(pathname, { method: "GET" }).then((res) => res.body),
+  });
 
-function get(obj, key, fallback = "") {
-  console.log("Getting key", key);
-  return key
-    .replace(/\[/g, ".")
-    .replace(/]/g, "")
-    .split(".")
-    .filter(Boolean)
-    .every((step) => !(step && (obj = obj[step]) === undefined))
-    ? obj
-    : fallback;
-}
+  const data = Route.preload
+    ? await Route.preload({ pathname, params, query, hash, ...metadata })
+    : {};
+  const rendered = Route.default.render({
+    ...data,
+    meta: metadata,
+  });
+
+  return reply(
+    fs
+      .readFileSync("layout.html")
+      .toString()
+      .replace("%body%", rendered.html)
+      .replace(
+        "%head%",
+        `<style type="text/css">${rendered.css.code}</style> ${rendered.head}`
+      )
+  );
+});
+server.listen(process.env.PORT || 3000);
+console.log("Simp listening on http://localhost:3000");
