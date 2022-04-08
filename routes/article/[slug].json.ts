@@ -1,4 +1,4 @@
-exports.get = function (req, res) {
+export async function get(req, res) {
   return {
     status: 200,
     body: {
@@ -7,4 +7,4 @@ exports.get = function (req, res) {
       slug: "hello-world",
     },
   };
-};
+}

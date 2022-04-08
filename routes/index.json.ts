@@ -1,4 +1,4 @@
-exports.get = function (req) {
+export async function get(req) {
   return {
     body: {
       articles: [
@@ -10,4 +10,4 @@ exports.get = function (req) {
       ],
     },
   };
-};
+}
